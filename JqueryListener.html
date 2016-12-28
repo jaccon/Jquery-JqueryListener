@@ -1,0 +1,150 @@
+<html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <style type="text/css">
+    .sidemenu{
+      display: none;
+      width: 100%;
+      height: 300px;
+      border: 1px #eb2626 solid;
+    }
+    </style>
+</head>
+<body>
+  <div class="" id="block-partners">
+      <ul id="partners">
+        <li id="partnerID" data-id="1" data-name="User 01" data-thumb="http://icons.iconarchive.com/icons/sicons/basic-round-social/256/jquery-icon.png" data-status="1">User 01</li>
+        <li id="partnerID" data-id="2" data-name="User 02" data-thumb="https://s-media-cache-ak0.pinimg.com/originals/1f/8c/f3/1f8cf30bafcc5f9e049d52794902b6a0.jpg" data-status="1">User 02</li>
+        <li id="partnerID" data-id="3" data-name="User 03" data-thumb="http://icons.iconarchive.com/icons/sicons/basic-round-social/256/jquery-icon.png" data-status="1">User 03</li>
+        <li id="partnerID" data-id="4" data-name="User 04" data-thumb="http://icons.iconarchive.com/icons/sicons/basic-round-social/256/jquery-icon.png" data-status="1">User 04</li>
+        <li id="partnerID" data-id="5" data-name="User 05" data-thumb="http://icons.iconarchive.com/icons/sicons/basic-round-social/256/jquery-icon.png" data-status="1">User 05</li>
+        <li id="partnerID" data-id="6" data-name="User 06" data-thumb="http://icons.iconarchive.com/icons/sicons/basic-round-social/256/jquery-icon.png" data-status="1">User 06</li>
+      </ul>
+  </div>
+
+  <div id="block-sidemenu" class="sidemenu">
+    <h3>Sidemenu</h3>
+    <span id="c-close">x</span>
+    <div class="">
+        <input type="text" name="content" id="chat-content"/>
+        <button id="chat-send">Enviar</button>
+    </div>
+    <div id="block-partner-conversation"></div>
+  </div>
+
+  <script>
+
+      // Check Timeout
+      var timeout = null;
+      var timeoutLimit = 900000;
+
+      $(document).on('mousemove', function() {
+          if (timeout !== null) {
+              clearTimeout(timeout);
+          }
+
+          timeout = setTimeout(function() {
+              alert('Stay here?');
+          }, timeoutLimit);
+
+      });
+      // :::
+
+      $(document).ready(function(){
+
+        // Conversation Functions
+        function setCookie(key, value) {
+          var expires = new Date();
+          expires.setTime(expires.getTime() + (1 * 24 * 60 * 60 * 1000));
+          document.cookie = key + '=' + value +';path=/'+ ';expires=' + expires.toUTCString();
+        }
+
+        function getCookie(key) {
+           var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
+           return keyValue ? keyValue[2] : null;
+       }
+       // :::
+
+       // Actions
+        $('#partners li').on('click', function(e) {
+            e.preventDefault();
+
+            // Enable Querys
+            var stopQuerys = "1";
+
+            // Get parameters
+            var partnerID = $(this).data("id");
+            var partnerName = $(this).data("name");
+            var partnerThumb = $(this).data("thumb");
+            var partnerStatus = $(this).data("status");
+
+            // Save Data Request
+            setCookie('partnerID',partnerID);
+            setCookie('partnerName',partnerName);
+            setCookie('partnerThumb',partnerThumb);
+            setCookie('partnerStatus',partnerStatus);
+            setCookie('EnableChat','1');
+
+            alert(getCookie('partnerID'));
+
+            // Set Slide
+            var duration = 'slow';
+            $('#block-sidemenu').show();
+
+            // Load Content
+             $("#block-partner-conversation").load("chat-conversation-ajax.php?id="+getCookie('partnerID'));
+
+            // Get Conversations
+            setInterval(function(){
+                // Check if call enabled
+                if(getCookie('EnableChat') == 1){
+                    $("#block-partner-conversation").load("chat-conversation-ajax.php?id="+getCookie('partnerID'));
+                }
+            },1000);
+
+            console.log(partnerID);
+
+        });
+
+        $('#c-close').on('click', function(e) {
+            $('#block-sidemenu').hide();
+            setCookie('EnableChat','0');
+        });
+
+        $('#chat-send').on('click', function(e) {
+            var content = $("#chat-content").val();
+
+            if (!content.trim()) {
+                alert('Please type your message...');
+            }else{
+                // if content is not blank send a message
+                var content = $("#chat-content").val();
+                  var pID = $.cookie("partnerID");
+                  if (!content.trim()) {
+                      alert('Please type your message...');
+                  }else{
+                      $.ajax({
+                        type: 'POST',
+                        url: 'chat-conversation-sender.php',
+                        data: '&destID='+pID +'&content='+content,
+                        success: function(data) {
+                            if($.trim(data) == '1'){
+                              $("#block-partner-conversation").load("chat-conversation-ajax.php?id="+getCookie('partnerID'));
+                            }
+                            else{
+                              alert('Messages not load');
+                            }
+                        },
+                          error: function (XMLHttpRequest, textStatus, errorThrown) {
+                       }
+                    });
+                  }
+                //
+            }
+        });
+
+      });
+  </script>
+  </body>
+</html>
